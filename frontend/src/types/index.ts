@@ -126,3 +126,44 @@ export interface AIAnalysis {
   analysis: string;
   model: string;
 }
+
+export interface RecSummary {
+  strongBuy: number;
+  buy: number;
+  hold: number;
+  sell: number;
+  strongSell: number;
+}
+
+export interface PriceTargets {
+  current: number | null;
+  low: number | null;
+  mean: number | null;
+  high: number | null;
+}
+
+export interface EarningsQuarter {
+  quarter: string;
+  revenue: number | null;
+  eps: number | null;
+}
+
+export interface Fundamentals {
+  rec_summary: RecSummary;
+  price_targets: PriceTargets;
+  earnings_history: EarningsQuarter[];
+  next_earnings: string | null;
+}
+
+export interface TopMover {
+  symbol: string;
+  label: string;
+  price: number;
+  change: number;
+  change_pct: number;
+}
+
+export interface TopMovers {
+  gainers: TopMover[];
+  losers: TopMover[];
+}

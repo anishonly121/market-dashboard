@@ -69,3 +69,21 @@ export function useAIAnalysis() {
     mutationFn: (ticker: string) => api.analyzeStock(ticker),
   });
 }
+
+export function useFundamentals(ticker: string) {
+  return useQuery({
+    queryKey: ["fundamentals", ticker],
+    queryFn: () => api.getFundamentals(ticker),
+    enabled: ticker.length > 0,
+    staleTime: 3_600_000,
+  });
+}
+
+export function useTopMovers() {
+  return useQuery({
+    queryKey: ["movers"],
+    queryFn: api.getTopMovers,
+    refetchInterval: 120_000,
+    staleTime: 60_000,
+  });
+}
