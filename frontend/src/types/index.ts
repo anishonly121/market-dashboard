@@ -94,10 +94,11 @@ export interface PortfolioValue {
   holdings: HoldingValue[];
 }
 
-export type Period = "1mo" | "3mo" | "6mo" | "1y" | "2y" | "5y";
+export type Period = "5d" | "1mo" | "3mo" | "6mo" | "1y" | "2y" | "5y";
 export type Interval = "1d" | "1wk" | "1mo";
 
 export const PERIOD_LABELS: Record<Period, string> = {
+  "5d":  "5D",
   "1mo": "1M",
   "3mo": "3M",
   "6mo": "6M",
@@ -105,3 +106,23 @@ export const PERIOD_LABELS: Record<Period, string> = {
   "2y":  "2Y",
   "5y":  "5Y",
 };
+
+export interface IndexQuote {
+  symbol: string;
+  label: string;
+  price: number;
+  change: number;
+  change_pct: number;
+}
+
+export interface NewsItem {
+  title: string;
+  publisher: string;
+  link: string;
+  published: number;
+}
+
+export interface AIAnalysis {
+  analysis: string;
+  model: string;
+}

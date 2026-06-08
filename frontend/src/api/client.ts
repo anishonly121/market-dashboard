@@ -1,15 +1,16 @@
 import axios from "axios";
 import type {
+  AIAnalysis,
   CompareResponse,
   Holding,
+  IndexQuote,
+  NewsItem,
   Portfolio,
   PortfolioValue,
   StockHistory,
   StockQuote,
 } from "../types";
 
-// In production VITE_API_BASE_URL points to the Render backend.
-// In development Vite's proxy handles /api/* → localhost:8000.
 const BASE_URL = import.meta.env.VITE_API_BASE_URL
   ? `${import.meta.env.VITE_API_BASE_URL}/api`
   : "/api";
@@ -36,6 +37,19 @@ export const api = {
         },
       })
       .then((r) => r.data),
+
+  // Market
+  getIndices: () =>
+    http.get<IndexQuote[]>("/market/indices").then((r) => r.data),
+
+  getSectors: () =>
+    http.get<IndexQuote[]>("/market/sectors").then((r) => r.data),
+
+  getNews: (ticker: string) =>
+    http.get<NewsItem[]>(`/market/stocks/${ticker}/news`).then((r) => r.data),
+
+  analyzeStock: (ticker: string) =>
+    http.post<AIAnalysis>(`/market/stocks/${ticker}/analyze`).then((r) => r.data),
 
   // Portfolios
   listPortfolios: () =>

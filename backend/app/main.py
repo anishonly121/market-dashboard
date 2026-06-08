@@ -9,7 +9,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
 from .database import Base, engine
-from .routers import portfolio, stocks
+from .routers import market, portfolio, stocks
 
 limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
 
@@ -47,6 +47,7 @@ app.add_middleware(
 
 app.include_router(stocks.router, prefix="/api")
 app.include_router(portfolio.router, prefix="/api")
+app.include_router(market.router, prefix="/api")
 
 
 @app.get("/health", tags=["meta"])
