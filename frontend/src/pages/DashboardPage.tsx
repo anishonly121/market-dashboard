@@ -1,10 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import PriceChart from "../components/charts/PriceChart";
+import AIAnalysisPanel from "../components/stock/AIAnalysisPanel";
 import MetricsGrid from "../components/stock/MetricsGrid";
+import NewsPanel from "../components/stock/NewsPanel";
 import StockHeader from "../components/stock/StockHeader";
 import StockSearch from "../components/stock/StockSearch";
 import { useHistory, useQuote } from "../hooks/useStock";
+import { analytics } from "../lib/analytics";
 import type { Period } from "../types";
+
+type Tab = "chart" | "news" | "ai";
+
+const TABS: { id: Tab; label: string; icon: string }[] = [
+  { id: "chart", label: "Chart",       icon: "📊" },
+  { id: "news",  label: "News",        icon: "📰" },
+  { id: "ai",    label: "AI Analysis", icon: "🤖" },
+];
 
 function Skeleton() {
   return (
@@ -20,8 +32,29 @@ function Skeleton() {
 }
 
 export default function DashboardPage() {
-  const [ticker, setTicker] = useState("AAPL");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlTicker = searchParams.get("ticker") || "AAPL";
+  const [ticker, setTicker] = useState(urlTicker);
   const [period, setPeriod] = useState<Period>("1y");
+  const [tab, setTab] = useState<Tab>("chart");
+
+  useEffect(() => { analytics.pageViewed("Dashboard"); }, []);
+
+  // Sync ticker into URL
+  const handleTickerChange = (t: string) => {
+    setTicker(t);
+    setSearchParams({ ticker: t }, { replace: true });
+    setTab("chart");
+  };
+
+  // Pick up ticker from URL (e.g., from command palette)
+  useEffect(() => {
+    if (urlTicker !== ticker) {
+      setTicker(urlTicker);
+      setTab("chart");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlTicker]);
 
   const { data: quote, isLoading: qLoading, error: qError } = useQuote(ticker);
   const { data: history, isLoading: hLoading } = useHistory(ticker, period);
@@ -31,7 +64,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="card">
-        <StockSearch value={ticker} onChange={setTicker} />
+        <StockSearch value={ticker} onChange={handleTickerChange} />
       </div>
 
       {qError && (
@@ -44,23 +77,61 @@ export default function DashboardPage() {
 
       {quote && (
         <div className="flex flex-col gap-4 animate-slide-up">
+          {/* Header */}
           <div className="card">
             <StockHeader quote={quote} />
           </div>
 
-          {history && history.bars.length > 0 ? (
-            <PriceChart
-              bars={history.bars}
-              period={period}
-              onPeriodChange={setPeriod}
-              ticker={ticker}
-              prevClose={quote.prev_close}
-            />
-          ) : hLoading ? (
-            <div className="skeleton h-96 rounded-xl" />
-          ) : null}
+          {/* Tabs */}
+          <div className="flex gap-1 border-b border-bg-border pb-0">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-t-lg border-b-2 transition-colors ${
+                  tab === t.id
+                    ? "border-brand text-brand"
+                    : "border-transparent text-muted hover:text-slate-200"
+                }`}
+              >
+                <span>{t.icon}</span>
+                <span>{t.label}</span>
+              </button>
+            ))}
+          </div>
 
+          {/* Tab content */}
+          <div className="animate-fade-in">
+            {tab === "chart" && (
+              <>
+                {history && history.bars.length > 0 ? (
+                  <PriceChart
+                    bars={history.bars}
+                    period={period}
+                    onPeriodChange={setPeriod}
+                    ticker={ticker}
+                    prevClose={quote.prev_close}
+                  />
+                ) : hLoading ? (
+                  <div className="skeleton h-96 rounded-xl" />
+                ) : null}
+              </>
+            )}
+
+            {tab === "news" && <NewsPanel ticker={ticker} />}
+            {tab === "ai" && <AIAnalysisPanel ticker={ticker} />}
+          </div>
+
+          {/* Metrics always visible */}
           <MetricsGrid quote={quote} />
+
+          {/* Company description */}
+          {quote.description && (
+            <div className="card">
+              <h3 className="text-xs uppercase tracking-widest text-muted font-semibold mb-2">About</h3>
+              <p className="text-sm text-muted leading-relaxed line-clamp-4">{quote.description}</p>
+            </div>
+          )}
         </div>
       )}
     </div>

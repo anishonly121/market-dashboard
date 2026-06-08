@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Line, LineChart, ResponsiveContainer } from "recharts";
 import { analytics } from "../lib/analytics";
-import { useQuote } from "../hooks/useStock";
+import { useQuote, useSparkline } from "../hooks/useStock";
 import { fmt, pctFmt } from "../utils/format";
 
 const STORAGE_KEY = "market_watchlist";
@@ -14,14 +16,43 @@ function saveWatchlist(tickers: string[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tickers));
 }
 
+function Sparkline({ ticker }: { ticker: string }) {
+  const { data: hist } = useSparkline(ticker);
+  if (!hist?.bars.length) return <div className="w-16 h-8" />;
+  const bars = hist.bars;
+  const up = bars[bars.length - 1].close >= bars[0].close;
+  const sparkData = bars.map((b) => ({ v: b.close }));
+  return (
+    <ResponsiveContainer width={72} height={32}>
+      <LineChart data={sparkData} margin={{ top: 2, right: 2, bottom: 2, left: 2 }}>
+        <Line
+          type="monotone"
+          dataKey="v"
+          stroke={up ? "#22c55e" : "#ef4444"}
+          strokeWidth={1.5}
+          dot={false}
+          isAnimationActive={false}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
 function WatchRow({ ticker, onRemove }: { ticker: string; onRemove: () => void }) {
   const { data, isLoading, isError } = useQuote(ticker);
+  const navigate = useNavigate();
   const up = (data?.change ?? 0) >= 0;
 
   return (
-    <tr className="border-b border-bg-border/50 hover:bg-bg-elevated/50 transition-colors">
+    <tr
+      className="border-b border-bg-border/50 hover:bg-bg-elevated/50 transition-colors cursor-pointer"
+      onClick={() => navigate(`/?ticker=${ticker}`)}
+    >
       <td className="py-3 pr-4 font-mono font-bold text-brand w-20">{ticker}</td>
-      <td className="py-3 pr-4 text-muted text-sm hidden sm:table-cell">{data?.name ?? "—"}</td>
+      <td className="py-3 pr-4 text-muted text-sm hidden sm:table-cell max-w-[160px] truncate">{data?.name ?? "—"}</td>
+      <td className="py-3 pr-4 hidden md:table-cell">
+        <Sparkline ticker={ticker} />
+      </td>
       {isLoading ? (
         <td colSpan={4} className="py-3"><div className="skeleton h-4 w-32 rounded" /></td>
       ) : isError ? (
@@ -32,12 +63,19 @@ function WatchRow({ ticker, onRemove }: { ticker: string; onRemove: () => void }
           <td className={`py-3 pr-4 font-mono font-semibold text-right ${up ? "text-green" : "text-red"}`}>
             {pctFmt(data.change_pct)}
           </td>
+          <td className="py-3 pr-4 text-muted text-sm text-right hidden lg:table-cell">
+            {data.market_cap ? `$${(data.market_cap / 1e9).toFixed(1)}B` : "—"}
+          </td>
           <td className="py-3 pr-4 text-muted text-sm hidden md:table-cell">{data.sector ?? "—"}</td>
-          <td className="py-3 pr-4 text-muted text-sm hidden md:table-cell">{data.exchange}</td>
         </>
       ) : null}
       <td className="py-3 text-right">
-        <button onClick={onRemove} className="text-muted hover:text-red transition-colors text-xs px-1">✕</button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onRemove(); }}
+          className="text-muted hover:text-red transition-colors text-xs px-1 py-1"
+        >
+          ✕
+        </button>
       </td>
     </tr>
   );
@@ -61,7 +99,8 @@ export default function WatchlistPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="card">
-        <h2 className="text-lg font-bold mb-4">Watchlist</h2>
+        <h2 className="text-lg font-bold mb-1">Watchlist</h2>
+        <p className="text-muted text-sm mb-4">Click any row to open the stock dashboard.</p>
         <div className="flex gap-2">
           <input
             className="input flex-1 uppercase font-mono"
@@ -87,10 +126,11 @@ export default function WatchlistPage() {
               <tr className="border-b border-bg-border text-muted text-xs uppercase tracking-wider">
                 <th className="text-left py-2 pr-4">Ticker</th>
                 <th className="text-left py-2 pr-4 hidden sm:table-cell">Name</th>
+                <th className="text-left py-2 pr-4 hidden md:table-cell">1M Trend</th>
                 <th className="text-right py-2 pr-4">Price</th>
                 <th className="text-right py-2 pr-4">1D %</th>
+                <th className="text-right py-2 pr-4 hidden lg:table-cell">Mkt Cap</th>
                 <th className="text-left py-2 pr-4 hidden md:table-cell">Sector</th>
-                <th className="text-left py-2 pr-4 hidden md:table-cell">Exchange</th>
                 <th />
               </tr>
             </thead>
