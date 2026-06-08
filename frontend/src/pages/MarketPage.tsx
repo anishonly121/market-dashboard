@@ -1,16 +1,16 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { analytics } from "../lib/analytics";
-import { useIndices, useSectors } from "../hooks/useStock";
+import { useIndices, useSectors, useTopMovers } from "../hooks/useStock";
 import type { IndexQuote } from "../types";
 
 function heatColor(pct: number): string {
-  if (pct >= 2)   return "bg-green/30 border-green/40 text-green";
-  if (pct >= 0.5) return "bg-green/15 border-green/25 text-green";
-  if (pct >= 0)   return "bg-green/5  border-green/10 text-green";
-  if (pct >= -0.5) return "bg-red/5   border-red/10   text-red";
-  if (pct >= -2)  return "bg-red/15   border-red/25   text-red";
-  return                 "bg-red/30   border-red/40   text-red";
+  if (pct >= 2)    return "bg-green/30 border-green/40 text-green";
+  if (pct >= 0.5)  return "bg-green/15 border-green/25 text-green";
+  if (pct >= 0)    return "bg-green/5  border-green/10 text-green";
+  if (pct >= -0.5) return "bg-red/5    border-red/10   text-red";
+  if (pct >= -2)   return "bg-red/15   border-red/25   text-red";
+  return                  "bg-red/30   border-red/40   text-red";
 }
 
 function IndexCard({ idx }: { idx: IndexQuote }) {
@@ -19,7 +19,6 @@ function IndexCard({ idx }: { idx: IndexQuote }) {
   const priceStr = isCrypto
     ? `$${idx.price.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
     : idx.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
   return (
     <div className={`card-sm border ${up ? "border-green/20" : "border-red/20"}`}>
       <p className="text-xs text-muted uppercase tracking-widest mb-1">{idx.label}</p>
@@ -46,9 +45,28 @@ function SectorCard({ idx, onClick }: { idx: IndexQuote; onClick: () => void }) 
   );
 }
 
+function MoverRow({
+  symbol, change_pct, price, onClick,
+}: { symbol: string; change_pct: number; price: number; onClick: () => void }) {
+  const up = change_pct >= 0;
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-bg-card transition-colors text-sm"
+    >
+      <span className="font-mono font-bold text-brand">{symbol}</span>
+      <span className="font-mono text-slate-300">${price.toFixed(2)}</span>
+      <span className={`font-mono font-semibold ${up ? "text-green" : "text-red"}`}>
+        {up ? "+" : ""}{change_pct.toFixed(2)}%
+      </span>
+    </button>
+  );
+}
+
 export default function MarketPage() {
-  const { data: indices = [], isLoading: iLoading } = useIndices();
-  const { data: sectors = [], isLoading: sLoading } = useSectors();
+  const { data: indices = [],  isLoading: iLoading } = useIndices();
+  const { data: sectors = [],  isLoading: sLoading } = useSectors();
+  const { data: movers,        isLoading: mLoading } = useTopMovers();
   const navigate = useNavigate();
 
   useEffect(() => { analytics.pageViewed("Market"); }, []);
@@ -72,6 +90,33 @@ export default function MarketPage() {
         )}
       </div>
 
+      {/* Top Movers */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="card">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="w-2 h-2 rounded-full bg-green" />
+            <h3 className="font-semibold text-sm">Top Gainers</h3>
+          </div>
+          {mLoading ? (
+            <div className="flex flex-col gap-2">{[...Array(5)].map((_, i) => <div key={i} className="skeleton h-8 rounded-lg" />)}</div>
+          ) : movers?.gainers.map((m) => (
+            <MoverRow key={m.symbol} {...m} onClick={() => navigate(`/?ticker=${m.symbol}`)} />
+          ))}
+        </div>
+
+        <div className="card">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="w-2 h-2 rounded-full bg-red" />
+            <h3 className="font-semibold text-sm">Top Losers</h3>
+          </div>
+          {mLoading ? (
+            <div className="flex flex-col gap-2">{[...Array(5)].map((_, i) => <div key={i} className="skeleton h-8 rounded-lg" />)}</div>
+          ) : movers?.losers.map((m) => (
+            <MoverRow key={m.symbol} {...m} onClick={() => navigate(`/?ticker=${m.symbol}`)} />
+          ))}
+        </div>
+      </div>
+
       {/* Sector heatmap */}
       <div>
         <div className="flex items-center justify-between mb-3">
@@ -91,11 +136,7 @@ export default function MarketPage() {
             {[...sectors]
               .sort((a, b) => b.change_pct - a.change_pct)
               .map((s) => (
-                <SectorCard
-                  key={s.symbol}
-                  idx={s}
-                  onClick={() => navigate(`/?ticker=${s.symbol}`)}
-                />
+                <SectorCard key={s.symbol} idx={s} onClick={() => navigate(`/?ticker=${s.symbol}`)} />
               ))}
           </div>
         )}

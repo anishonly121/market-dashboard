@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import PriceChart from "../components/charts/PriceChart";
 import AIAnalysisPanel from "../components/stock/AIAnalysisPanel";
+import FundamentalsPanel from "../components/stock/FundamentalsPanel";
 import MetricsGrid from "../components/stock/MetricsGrid";
 import NewsPanel from "../components/stock/NewsPanel";
 import StockHeader from "../components/stock/StockHeader";
@@ -10,12 +11,13 @@ import { useHistory, useQuote } from "../hooks/useStock";
 import { analytics } from "../lib/analytics";
 import type { Period } from "../types";
 
-type Tab = "chart" | "news" | "ai";
+type Tab = "chart" | "fundamentals" | "news" | "ai";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: "chart", label: "Chart",       icon: "📊" },
-  { id: "news",  label: "News",        icon: "📰" },
-  { id: "ai",    label: "AI Analysis", icon: "🤖" },
+  { id: "chart",        label: "Chart",        icon: "📊" },
+  { id: "fundamentals", label: "Fundamentals", icon: "📋" },
+  { id: "news",         label: "News",         icon: "📰" },
+  { id: "ai",           label: "AI Analysis",  icon: "🤖" },
 ];
 
 function Skeleton() {
@@ -40,14 +42,12 @@ export default function DashboardPage() {
 
   useEffect(() => { analytics.pageViewed("Dashboard"); }, []);
 
-  // Sync ticker into URL
   const handleTickerChange = (t: string) => {
     setTicker(t);
     setSearchParams({ ticker: t }, { replace: true });
     setTab("chart");
   };
 
-  // Pick up ticker from URL (e.g., from command palette)
   useEffect(() => {
     if (urlTicker !== ticker) {
       setTicker(urlTicker);
@@ -77,13 +77,12 @@ export default function DashboardPage() {
 
       {quote && (
         <div className="flex flex-col gap-4 animate-slide-up">
-          {/* Header */}
           <div className="card">
             <StockHeader quote={quote} />
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 border-b border-bg-border pb-0">
+          <div className="flex gap-1 border-b border-bg-border">
             {TABS.map((t) => (
               <button
                 key={t.id}
@@ -94,38 +93,37 @@ export default function DashboardPage() {
                     : "border-transparent text-muted hover:text-slate-200"
                 }`}
               >
-                <span>{t.icon}</span>
+                <span className="hidden sm:inline">{t.icon}</span>
                 <span>{t.label}</span>
               </button>
             ))}
           </div>
 
-          {/* Tab content */}
           <div className="animate-fade-in">
             {tab === "chart" && (
-              <>
-                {history && history.bars.length > 0 ? (
-                  <PriceChart
-                    bars={history.bars}
-                    period={period}
-                    onPeriodChange={setPeriod}
-                    ticker={ticker}
-                    prevClose={quote.prev_close}
-                  />
-                ) : hLoading ? (
-                  <div className="skeleton h-96 rounded-xl" />
-                ) : null}
-              </>
+              history && history.bars.length > 0 ? (
+                <PriceChart
+                  bars={history.bars}
+                  period={period}
+                  onPeriodChange={setPeriod}
+                  ticker={ticker}
+                  prevClose={quote.prev_close}
+                />
+              ) : hLoading ? (
+                <div className="skeleton h-96 rounded-xl" />
+              ) : null
+            )}
+
+            {tab === "fundamentals" && (
+              <FundamentalsPanel ticker={ticker} currentPrice={quote.price} />
             )}
 
             {tab === "news" && <NewsPanel ticker={ticker} />}
-            {tab === "ai" && <AIAnalysisPanel ticker={ticker} />}
+            {tab === "ai"  && <AIAnalysisPanel ticker={ticker} />}
           </div>
 
-          {/* Metrics always visible */}
           <MetricsGrid quote={quote} />
 
-          {/* Company description */}
           {quote.description && (
             <div className="card">
               <h3 className="text-xs uppercase tracking-widest text-muted font-semibold mb-2">About</h3>

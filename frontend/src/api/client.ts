@@ -2,6 +2,7 @@ import axios from "axios";
 import type {
   AIAnalysis,
   CompareResponse,
+  Fundamentals,
   Holding,
   IndexQuote,
   NewsItem,
@@ -9,6 +10,7 @@ import type {
   PortfolioValue,
   StockHistory,
   StockQuote,
+  TopMovers,
 } from "../types";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL
@@ -50,6 +52,12 @@ export const api = {
 
   analyzeStock: (ticker: string) =>
     http.post<AIAnalysis>(`/market/stocks/${ticker}/analyze`).then((r) => r.data),
+
+  getFundamentals: (ticker: string) =>
+    http.get<Fundamentals>(`/market/stocks/${ticker}/fundamentals`).then((r) => r.data),
+
+  getTopMovers: () =>
+    http.get<TopMovers>("/market/movers").then((r) => r.data),
 
   // Portfolios
   listPortfolios: () =>

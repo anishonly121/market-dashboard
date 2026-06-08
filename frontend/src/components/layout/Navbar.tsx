@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
+import LogoIcon from "../LogoIcon";
 
 const NAV = [
-  { to: "/",        label: "Dashboard"  },
-  { to: "/market",  label: "Market"     },
-  { to: "/compare", label: "Compare"    },
-  { to: "/portfolio",label: "Portfolio" },
-  { to: "/watchlist",label: "Watchlist" },
-  { to: "/backtest", label: "Backtest"  },
+  { to: "/",         label: "Dashboard"   },
+  { to: "/market",   label: "Market"      },
+  { to: "/compare",  label: "Compare"     },
+  { to: "/portfolio",label: "Portfolio"   },
+  { to: "/watchlist",label: "Watchlist"   },
+  { to: "/backtest", label: "Backtest"    },
 ];
 
 interface Props {
@@ -19,14 +20,20 @@ export default function Navbar({ onCommandPalette }: Props) {
 
   return (
     <header className="sticky top-0 z-40 border-b border-bg-border bg-bg-elevated/80 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-        <Link to="/" className="flex items-center gap-2 font-bold text-lg tracking-tight shrink-0">
-          <span className="text-brand text-2xl">📈</span>
-          <span className="hidden sm:inline">Market Dashboard</span>
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
+          <LogoIcon size={34} />
+          <div className="hidden sm:flex flex-col leading-tight">
+            <span className="font-bold text-sm text-slate-100 tracking-tight group-hover:text-brand transition-colors">
+              Market
+            </span>
+            <span className="font-semibold text-xs text-brand">Dashboard</span>
+          </div>
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden md:flex items-center gap-0.5">
           {NAV.map(({ to, label }) => (
             <NavLink
               key={to}
@@ -45,7 +52,7 @@ export default function Navbar({ onCommandPalette }: Props) {
           ))}
         </nav>
 
-        {/* Cmd+K button */}
+        {/* Search button */}
         <button
           onClick={onCommandPalette}
           className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-bg-border text-muted text-xs hover:border-brand/50 hover:text-slate-200 transition-colors"
