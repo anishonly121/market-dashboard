@@ -185,17 +185,17 @@ Live at **https://frontend-two-dun-61.vercel.app**
 
 To redeploy after changes: `cd frontend && vercel --prod --yes --scope bholeanish3-2351s-projects`
 
-### Backend → Render (one-click)
+### Backend — deployed on Railway ✅
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/anishonly121/market-dashboard)
+Live at **https://market-dashboard-api-production.up.railway.app**
 
-Or manually:
-1. Go to [render.com](https://render.com) → **New → Web Service**
-2. Connect `anishonly121/market-dashboard`
-3. Root directory: `backend`, Build: `pip install -r requirements.txt`, Start: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-4. Add env var: `ALLOWED_ORIGINS=https://frontend-two-dun-61.vercel.app`
-5. After deploy, copy your Render URL (e.g. `https://market-dashboard-api.onrender.com`)
-6. Add `VITE_API_BASE_URL=https://market-dashboard-api.onrender.com` to Vercel env vars → redeploy frontend
+To redeploy after changes:
+```bash
+cd backend && railway up --detach
+```
+
+Env vars set on Railway:
+- `ALLOWED_ORIGINS=https://frontend-two-dun-61.vercel.app`
 
 ### Phase 1 → Streamlit Community Cloud
 1. Go to [share.streamlit.io](https://share.streamlit.io)
