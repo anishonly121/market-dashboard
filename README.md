@@ -1,110 +1,222 @@
 # Market Dashboard
 
-A full-stack financial dashboard built in two phases — from a fast Streamlit prototype to a production-quality React + FastAPI app.
+[![CI](https://github.com/YOUR_USERNAME/market-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/market-dashboard/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688?logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+
+A full-stack financial dashboard that pulls real market data, tracks portfolios with live P&L, compares stocks, runs backtests, and measures its own usage with Mixpanel. Built in two phases: a Streamlit prototype first, then rebuilt as a proper FastAPI + React application.
+
+**[Live Demo →](#deploy)** · **[Phase 1 Streamlit](#phase-1--streamlit-dashboard)** · **[API Docs](#api)**
+
+---
+
+## Screenshot
+
+> _Add a screenshot or GIF here after running the app._
+> `Tip: use ShareX (Windows) or LICEcap to record a GIF of the dashboard._`
+
+---
 
 ## Architecture
 
-```
-market-dashboard/
-├── phase1-streamlit/   # Phase 1: Streamlit dashboard (Python only)
-└── backend/            # Phase 2: FastAPI REST API
-    frontend/           # Phase 2: React + TypeScript UI
+```mermaid
+flowchart TD
+    Browser["Browser"]
+
+    subgraph FE ["Frontend — Vite · React · TypeScript · Tailwind · Recharts"]
+        Dashboard
+        Compare
+        Portfolio
+        Watchlist
+        Backtest
+    end
+
+    subgraph BE ["Backend — FastAPI · Python · SQLAlchemy"]
+        StocksAPI["/api/stocks"]
+        PortfolioAPI["/api/portfolios"]
+        Cache["In-Memory Cache\n(2 min TTL)"]
+        RateLimit["Rate Limiter\n(slowapi · 60 req/min)"]
+    end
+
+    subgraph Data ["Data Layer"]
+        SQLite[("SQLite DB\nportfolios · holdings")]
+        YFinance["Yahoo Finance API\n(yfinance)"]
+    end
+
+    Browser --> FE
+    FE -- "REST /api/*" --> BE
+    StocksAPI --> RateLimit --> Cache --> YFinance
+    PortfolioAPI --> SQLite
 ```
 
 ---
 
-## Phase 1 — Streamlit Dashboard
+## Features
 
-**Stack:** Python · yfinance · pandas · Plotly · Streamlit
+### Phase 1 — Streamlit (`phase1-streamlit/`)
+- Real-time stock quotes via Yahoo Finance (no API key needed)
+- Candlestick + line charts with Moving Averages (20/50/200) and Bollinger Bands
+- RSI oscillator panel
+- Multi-stock comparison with normalized returns and correlation heatmap
+- Session-based portfolio tracker with P&L and allocation charts
 
-**Features:**
-- Real-time stock quotes (any ticker via Yahoo Finance)
-- Candlestick & line charts with Moving Averages (20/50/200) and Bollinger Bands
-- RSI indicator panel
-- Multi-stock comparison with normalized returns & correlation heatmap
-- Portfolio tracker (session-based) with P&L, allocation pie chart
-- One-click deploy to Streamlit Community Cloud
+### Phase 2 — Full-Stack (`backend/` + `frontend/`)
 
-### Run Phase 1
+| Area | What's included |
+|------|----------------|
+| **Dashboard** | Search any ticker · price/volume chart · MA overlays · 52-week range · key metrics |
+| **Compare** | Normalize up to 6 stocks on one chart · preset groups (FAANG+, EVs, Chips, Banks) · sortable table |
+| **Portfolio** | Create/delete portfolios · add/remove holdings · live P&L · allocation donut chart |
+| **Watchlist** | localStorage-persisted ticker list · live prices and % changes |
+| **Backtest** | "What if I'd invested $X N years ago?" · growth chart · CAGR · max drawdown |
+| **Analytics** | Mixpanel event tracking (page views, searches, portfolio actions) |
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Why |
+|-------|-----------|-----|
+| Frontend framework | React 18 + TypeScript | Type safety catches bugs at compile time |
+| Build tool | Vite | Near-instant HMR; much faster than CRA |
+| Styling | Tailwind CSS | Utility classes keep the codebase lean |
+| Charts | Recharts | Composable, React-native chart library |
+| Data fetching | TanStack Query | Handles caching, refetch, and loading states cleanly |
+| Backend | FastAPI | Automatic OpenAPI docs; async-ready; Pydantic validation |
+| ORM | SQLAlchemy 2 | Typed models, easy migrations |
+| Database | SQLite | Zero-setup for dev; swap to Postgres for prod with one line |
+| Market data | yfinance | Free, no API key, covers 50k+ global tickers |
+| Rate limiting | slowapi | Prevents hammering Yahoo Finance |
+| Analytics | Mixpanel | Track real usage and iterate |
+
+---
+
+## Quick Start
+
+### Phase 1 — Streamlit (fastest path to something working)
 
 ```bash
 cd phase1-streamlit
-pip install -r requirements.txt
-streamlit run app.py
+python -m pip install -r requirements.txt
+python -m streamlit run app.py
+# Open http://localhost:8501
 ```
 
-Open [http://localhost:8501](http://localhost:8501)
+Or on Windows: double-click `start-phase1.ps1`
 
 ---
 
-## Phase 2 — Full-Stack App
+### Phase 2 — Full Stack
 
-### Backend (FastAPI)
-
-**Stack:** Python · FastAPI · SQLAlchemy · SQLite · yfinance · Pydantic
-
-**Endpoints:**
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/stocks/{ticker}` | Current quote |
-| GET | `/api/stocks/{ticker}/history` | OHLCV history |
-| GET | `/api/stocks/compare/many?tickers=…` | Normalized comparison |
-| POST | `/api/portfolios` | Create portfolio |
-| GET | `/api/portfolios` | List portfolios |
-| GET | `/api/portfolios/{id}` | Get portfolio |
-| PUT | `/api/portfolios/{id}` | Update portfolio |
-| DELETE | `/api/portfolios/{id}` | Delete portfolio |
-| POST | `/api/portfolios/{id}/holdings` | Add / update holding |
-| DELETE | `/api/portfolios/{id}/holdings/{hid}` | Remove holding |
-| GET | `/api/portfolios/{id}/value` | Live portfolio valuation |
+**1. Backend**
 
 ```bash
 cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+python -m pip install -r requirements.txt
+
+# Optional: seed a demo portfolio
+python seed.py
+
+# Start the API server
+python -m uvicorn app.main:app --reload
+# API docs: http://localhost:8000/docs
 ```
 
-API docs: [http://localhost:8000/docs](http://localhost:8000/docs)
-
----
-
-### Frontend (React)
-
-**Stack:** React 18 · TypeScript · Vite · Tailwind CSS · Recharts · TanStack Query · React Router
-
-**Pages:**
-- **Dashboard** — search any ticker, view price chart with MA overlays, key metrics
-- **Compare** — compare up to 6 stocks with normalized returns chart + summary table
-- **Portfolio** — create/manage portfolios, track live P&L, view allocation chart
+**2. Frontend**
 
 ```bash
 cd frontend
 npm install
 npm run dev
+# Open http://localhost:5173
 ```
 
-Open [http://localhost:5173](http://localhost:5173)
+Or on Windows: double-click `start.ps1` to launch both at once.
+
+**3. Analytics (optional)**
+
+```bash
+cd frontend
+cp .env.example .env.local
+# Add your free Mixpanel token to VITE_MIXPANEL_TOKEN
+```
+Get a free token at [mixpanel.com](https://mixpanel.com) → create project → Project Settings.
+
+---
+
+## API Reference
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/stocks/{ticker}` | Current quote (price, change, metrics) |
+| GET | `/api/stocks/{ticker}/history` | OHLCV bars (`?period=1y&interval=1d`) |
+| GET | `/api/stocks/compare/many` | Normalized returns for multiple tickers |
+| POST | `/api/portfolios` | Create portfolio |
+| GET | `/api/portfolios` | List all portfolios |
+| GET | `/api/portfolios/{id}` | Get portfolio |
+| PUT | `/api/portfolios/{id}` | Update portfolio |
+| DELETE | `/api/portfolios/{id}` | Delete portfolio |
+| POST | `/api/portfolios/{id}/holdings` | Add / upsert holding |
+| DELETE | `/api/portfolios/{id}/holdings/{hid}` | Remove holding |
+| GET | `/api/portfolios/{id}/value` | Live portfolio valuation with P&L |
+
+---
+
+## Tests
+
+```bash
+# Backend (18 tests)
+cd backend && python -m pytest tests/ -v
+
+# Frontend (21 tests)
+cd frontend && npm test -- --run
+```
+
+Tests run automatically on every push via GitHub Actions (see `.github/workflows/ci.yml`).
 
 ---
 
 ## Deploy
 
-| Service | What |
-|---------|------|
-| [Streamlit Community Cloud](https://streamlit.io/cloud) | Phase 1 (free, connect GitHub repo) |
-| [Render](https://render.com) / [Railway](https://railway.app) | FastAPI backend (free tier) |
-| [Vercel](https://vercel.com) / [Netlify](https://netlify.com) | React frontend (free tier) |
+### Frontend → Vercel
+1. Push repo to GitHub
+2. Import project at [vercel.com](https://vercel.com)
+3. Set root directory to `frontend`
+4. Add env var: `VITE_MIXPANEL_TOKEN`
+
+### Backend → Render
+1. Create a new **Web Service** at [render.com](https://render.com)
+2. Connect your GitHub repo
+3. Root directory: `backend`
+4. Build command: `pip install -r requirements.txt`
+5. Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+6. Add env var: `ALLOWED_ORIGINS=https://your-app.vercel.app`
+
+### Phase 1 → Streamlit Community Cloud
+1. Push repo to GitHub (must be public)
+2. Go to [share.streamlit.io](https://share.streamlit.io)
+3. New app → point to `phase1-streamlit/app.py`
 
 ---
 
-## Screenshots
+## Project Decisions
 
-> Add screenshots here after running the app.
+**Why SQLite instead of Postgres?**
+Zero setup for development. SQLAlchemy makes swapping to Postgres a one-line change (`DATABASE_URL` in `.env`). For a personal dashboard with one user, SQLite is the right tool.
+
+**Why not use a real-time WebSocket feed?**
+Yahoo Finance doesn't provide a real-time stream without a paid subscription. Polling every 60–120 seconds is honest about the data freshness and keeps the app free to run.
+
+**Why in-memory caching instead of Redis?**
+Redis adds operational complexity. A simple dict cache with a TTL achieves the same goal for a single-instance deployment. The abstraction (`_cached()` in `market_data.py`) makes swapping trivial later.
 
 ---
 
-## What I learned
+## What I Learned
 
-- **Phase 1** revealed what working with financial data _feels_ like — fetching, cleaning, visualising.
-- **Phase 2** showed how a real full-stack system is wired: REST API → database → typed frontend.
-- The gap between a Streamlit prototype and a proper app is mostly _structure_, not magic.
+- **Full-stack wiring**: how a typed API contract (Pydantic schemas ↔ TypeScript types) prevents an entire class of runtime bugs
+- **SQL vs server defaults**: `server_default=func.now()` works in production but creates subtle test failures — Python-side defaults are more predictable
+- **Testing strategy**: mocking external APIs (yfinance) at the right boundary makes tests fast and reliable without sacrificing coverage
+- **Product analytics**: instrumenting your own project teaches you more about user behaviour than any tutorial — and it's a great story to tell
