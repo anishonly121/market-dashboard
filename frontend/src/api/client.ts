@@ -8,7 +8,13 @@ import type {
   StockQuote,
 } from "../types";
 
-const http = axios.create({ baseURL: "/api", timeout: 30_000 });
+// In production VITE_API_BASE_URL points to the Render backend.
+// In development Vite's proxy handles /api/* → localhost:8000.
+const BASE_URL = import.meta.env.VITE_API_BASE_URL
+  ? `${import.meta.env.VITE_API_BASE_URL}/api`
+  : "/api";
+
+const http = axios.create({ baseURL: BASE_URL, timeout: 30_000 });
 
 export const api = {
   // Stocks
