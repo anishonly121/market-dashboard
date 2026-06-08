@@ -1,6 +1,6 @@
 # Market Dashboard
 
-[![CI](https://github.com/YOUR_USERNAME/market-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/market-dashboard/actions/workflows/ci.yml)
+[![CI](https://github.com/anishonly121/market-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/anishonly121/market-dashboard/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688?logo=fastapi&logoColor=white)
@@ -8,7 +8,7 @@
 
 A full-stack financial dashboard that pulls real market data, tracks portfolios with live P&L, compares stocks, runs backtests, and measures its own usage with Mixpanel. Built in two phases: a Streamlit prototype first, then rebuilt as a proper FastAPI + React application.
 
-**[Live Demo →](#deploy)** · **[Phase 1 Streamlit](#phase-1--streamlit-dashboard)** · **[API Docs](#api)**
+**[Live Demo →](https://frontend-two-dun-61.vercel.app)** · **[GitHub →](https://github.com/anishonly121/market-dashboard)** · **[API Docs →](#api)**
 
 ---
 
@@ -180,24 +180,27 @@ Tests run automatically on every push via GitHub Actions (see `.github/workflows
 
 ## Deploy
 
-### Frontend → Vercel
-1. Push repo to GitHub
-2. Import project at [vercel.com](https://vercel.com)
-3. Set root directory to `frontend`
-4. Add env var: `VITE_MIXPANEL_TOKEN`
+### Frontend — deployed ✅
+Live at **https://frontend-two-dun-61.vercel.app**
 
-### Backend → Render
-1. Create a new **Web Service** at [render.com](https://render.com)
-2. Connect your GitHub repo
-3. Root directory: `backend`
-4. Build command: `pip install -r requirements.txt`
-5. Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-6. Add env var: `ALLOWED_ORIGINS=https://your-app.vercel.app`
+To redeploy after changes: `cd frontend && vercel --prod --yes --scope bholeanish3-2351s-projects`
+
+### Backend → Render (one-click)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/anishonly121/market-dashboard)
+
+Or manually:
+1. Go to [render.com](https://render.com) → **New → Web Service**
+2. Connect `anishonly121/market-dashboard`
+3. Root directory: `backend`, Build: `pip install -r requirements.txt`, Start: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+4. Add env var: `ALLOWED_ORIGINS=https://frontend-two-dun-61.vercel.app`
+5. After deploy, copy your Render URL (e.g. `https://market-dashboard-api.onrender.com`)
+6. Add `VITE_API_BASE_URL=https://market-dashboard-api.onrender.com` to Vercel env vars → redeploy frontend
 
 ### Phase 1 → Streamlit Community Cloud
-1. Push repo to GitHub (must be public)
-2. Go to [share.streamlit.io](https://share.streamlit.io)
-3. New app → point to `phase1-streamlit/app.py`
+1. Go to [share.streamlit.io](https://share.streamlit.io)
+2. New app → repo `anishonly121/market-dashboard` → file `phase1-streamlit/app.py`
+3. Click Deploy
 
 ---
 
