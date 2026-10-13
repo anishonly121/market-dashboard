@@ -25,7 +25,7 @@ A full-stack financial dashboard that pulls real market data, tracks portfolios 
 flowchart TD
     Browser["Browser"]
 
-    subgraph FE ["Frontend — Vite · React · TypeScript · Tailwind · Recharts"]
+    subgraph FE ["Frontend: Vite · React · TypeScript · Tailwind · Recharts"]
         Dashboard
         Compare
         Portfolio
@@ -33,7 +33,7 @@ flowchart TD
         Backtest
     end
 
-    subgraph BE ["Backend — FastAPI · Python · SQLAlchemy"]
+    subgraph BE ["Backend: FastAPI · Python · SQLAlchemy"]
         StocksAPI["/api/stocks"]
         PortfolioAPI["/api/portfolios"]
         Cache["In-Memory Cache\n(2 min TTL)"]
@@ -55,14 +55,14 @@ flowchart TD
 
 ## Features
 
-### Phase 1 — Streamlit (`phase1-streamlit/`)
+### Phase 1: Streamlit (`phase1-streamlit/`)
 - Real-time stock quotes via Yahoo Finance (no API key needed)
 - Candlestick + line charts with Moving Averages (20/50/200) and Bollinger Bands
 - RSI oscillator panel
 - Multi-stock comparison with normalized returns and correlation heatmap
 - Session-based portfolio tracker with P&L and allocation charts
 
-### Phase 2 — Full-Stack (`backend/` + `frontend/`)
+### Phase 2: Full-Stack (`backend/` + `frontend/`)
 
 | Area | What's included |
 |------|----------------|
@@ -95,7 +95,7 @@ flowchart TD
 
 ## Quick Start
 
-### Phase 1 — Streamlit (fastest path to something working)
+### Phase 1: Streamlit (fastest path to something working)
 
 ```bash
 cd phase1-streamlit
@@ -108,7 +108,7 @@ Or on Windows: double-click `start-phase1.ps1`
 
 ---
 
-### Phase 2 — Full Stack
+### Phase 2: Full Stack
 
 **1. Backend**
 
@@ -180,12 +180,12 @@ Tests run automatically on every push via GitHub Actions (see `.github/workflows
 
 ## Deploy
 
-### Frontend — deployed ✅
+### Frontend: deployed ✅
 Live at **https://frontend-two-dun-61.vercel.app**
 
 To redeploy after changes: `cd frontend && vercel --prod --yes --scope bholeanish3-2351s-projects`
 
-### Backend — deployed on Railway ✅
+### Backend: deployed on Railway ✅
 
 Live at **https://market-dashboard-api-production.up.railway.app**
 
@@ -220,6 +220,6 @@ Redis adds operational complexity. A simple dict cache with a TTL achieves the s
 ## What I Learned
 
 - **Full-stack wiring**: how a typed API contract (Pydantic schemas ↔ TypeScript types) prevents an entire class of runtime bugs
-- **SQL vs server defaults**: `server_default=func.now()` works in production but creates subtle test failures — Python-side defaults are more predictable
+- **SQL vs server defaults**: `server_default=func.now()` works in production but creates subtle test failures, so Python-side defaults are more predictable
 - **Testing strategy**: mocking external APIs (yfinance) at the right boundary makes tests fast and reliable without sacrificing coverage
-- **Product analytics**: instrumenting your own project teaches you more about user behaviour than any tutorial — and it's a great story to tell
+- **Product analytics**: instrumenting your own project teaches you more about user behaviour than any tutorial
